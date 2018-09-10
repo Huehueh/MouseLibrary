@@ -146,9 +146,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cLabirynt.h" />
     <ClInclude Include="Main.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cLabirynt.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
