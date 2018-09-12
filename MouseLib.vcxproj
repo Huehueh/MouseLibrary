@@ -147,10 +147,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="cLabirynt.h" />
+    <ClInclude Include="cMouse.h" />
+    <ClInclude Include="cPosition.h" />
+    <ClInclude Include="cRoute.h" />
     <ClInclude Include="Main.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cLabirynt.cpp" />
+    <ClCompile Include="cMouse.cpp" />
+    <ClCompile Include="cPosition.cpp" />
+    <ClCompile Include="cRoute.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
