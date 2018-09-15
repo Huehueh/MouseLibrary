@@ -23,11 +23,12 @@ struct sCell {
     int n, s, w, e; // czy sa sciany 1 -jest, 0 - nie ma, -1 - nie wiadomo
 };
 
-enum class eDirection {
-    N,
-    W,
-    E,
-    S
+enum class eState {
+    Wall,
+    AlreadyVisited,
+    EndOfRoute,
+    FreeToGo,
+    Unknown
 };
 
 class cLabirynt {
@@ -36,14 +37,32 @@ public:
     ~cLabirynt();
 
     static bool CheckSize(int size);
-    bool IsCenter(const cPosition& position);
+    bool IsCenter(const cPosition& position) const;
+    inline eState Right() const
+    {
+        return rightState;
+    }
+    eState Left() const
+    {
+        return leftState;
+    }
+    eState Front() const
+    {
+        return frontState;
+    }
 
     void Set(const cPosition& position, eDirection mouseDirection, bool left, bool right, bool front);
     //void WhereToGo(const cPosition& position, bool& goLeft, bool& goRight, bool& goFront);
     bool IsNode(const cPosition& position);
 
 private:
+    void SetState(const cPosition& nPos, eState& state, bool wall) const;
+
     sCell** myCells;
     int mWidth;
     int mHeight;
+
+    eState rightState = eState::Unknown;
+    eState leftState = eState::Unknown;
+    eState frontState = eState::Unknown;
 };

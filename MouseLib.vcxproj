@@ -150,6 +150,7 @@
     <ClInclude Include="cMouse.h" />
     <ClInclude Include="cPosition.h" />
     <ClInclude Include="cRoute.h" />
+    <ClInclude Include="cRouteMap.h" />
     <ClInclude Include="Main.h" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +158,7 @@
     <ClCompile Include="cMouse.cpp" />
     <ClCompile Include="cPosition.cpp" />
     <ClCompile Include="cRoute.cpp" />
+    <ClCompile Include="cRouteMap.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
