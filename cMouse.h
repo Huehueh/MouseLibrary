@@ -4,18 +4,9 @@ class cRoute;
 
 #include "cLabirynt.h"
 #include "cPosition.h"
-#include "cRouteMap.h"
 
 #include <memory>
 #include <vector>
-
-enum class eDecision {
-    STAY = 0,
-    GO_STRAIGHT = 1,
-    GO_LEFT = 2,
-    GO_RIGHT = 3,
-    GO_BACK = 4
-};
 
 class cMouse {
 public:
@@ -27,16 +18,19 @@ public:
     int GoFrom(cMouse* mouse, int x, int y, bool recalculate);
 
     inline cPosition Position() { return myPosition; };
-    inline eDirection Direction() { return myDirection; };
+    inline Direction::eAbsolute Direction() { return myDirection; };
 
 private:
     void ManageRoute();
-    eDecision MakeDecision();
-    void SetPosDir(eDecision decision);
+    Direction::eRelative MakeDecision(bool leftWall, bool rightWall, bool frontWall);
+    void SetPosDir(Direction::eRelative decision);
+    Direction::eRelative ResearchForNewWay(bool leftWall, bool rightWall, bool frontWall);
+    Direction::eRelative ChooseWisely(std::vector<sCell*>& possibilities);
 
-    cRouteMap map;
     std::unique_ptr<cLabirynt> myLabirynth;
     cPosition myPosition;
     std::shared_ptr<cRoute> currentRoute;
-    eDirection myDirection;
+    Direction::eAbsolute myDirection;
+    bool goingBackMode;
+    int goingBackPosition;
 };

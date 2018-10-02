@@ -1,15 +1,14 @@
 #include "cMouse.h"
+#include "Directions.h"
 #include "cRoute.h"
 
+#include <algorithm>
 #include <iostream>
 
-//Directions
-// N - north
-//
-
 cMouse::cMouse()
-    : myLabirynth(nullptr)
-    , myDirection(eDirection::N)
+    : myDirection(Direction::eAbsolute::North)
+    , goingBackMode(false)
+    , goingBackPosition(0)
 {
 }
 
@@ -17,10 +16,6 @@ cMouse::~cMouse() {}
 
 bool cMouse::CreateLabirynt(int width, int height)
 {
-    if (cLabirynt::CheckSize(width) == false || cLabirynt::CheckSize(height) == false) {
-
-        return false;
-    }
     myLabirynth = std::make_unique<cLabirynt>(width, height);
     currentRoute = std::make_shared<cRoute>(myPosition);
     return true;
@@ -29,130 +24,109 @@ bool cMouse::CreateLabirynt(int width, int height)
 int cMouse::ResearchNextStep(bool leftWall, bool rightWall, bool frontWall)
 {
     //uzupelnienie info w labiryncie
-
     myLabirynth->Set(myPosition, myDirection, leftWall, rightWall, frontWall);
 
-    //stworzenie wlasnej mapy wektorowej
-    //ManageRoute();
+    //zarzadzanie marszrutami
+    ManageRoute();
 
     //decyzja gdzie iœæ
-    auto decision = MakeDecision();
-    //std::cout << "Decyzja " << static_cast<int>(decision) << std::endl;
+    auto decision = MakeDecision(leftWall, rightWall, frontWall);
 
-    // nowa pozycja
+    //ustawienie nowej pozycji
     SetPosDir(decision);
 
-    return static_cast<int>(decision);
+    switch (decision) {
+    case Direction::eRelative::Left:
+        return 2;
+    case Direction::eRelative::Right:
+        return 3;
+    case Direction::eRelative::Straight:
+        return 1;
+    case Direction::eRelative::Back:
+        return 4;
+    }
+    return 0;
 }
 
-void cMouse::SetPosDir(eDecision decision)
+void cMouse::SetPosDir(Direction::eRelative decision)
 {
-    // new direction
-    switch (myDirection) {
-    case eDirection::N: {
-        switch (decision) {
-        case eDecision::GO_LEFT:
-            myDirection = eDirection::W;
-            break;
-
-        case eDecision::GO_RIGHT:
-            myDirection = eDirection::E;
-            break;
-        case eDecision::GO_BACK:
-            myDirection = eDirection::S;
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-
-    case eDirection::S: {
-        switch (decision) {
-        case eDecision::GO_LEFT:
-            myDirection = eDirection::E;
-            break;
-
-        case eDecision::GO_RIGHT:
-            myDirection = eDirection::W;
-            break;
-        case eDecision::GO_BACK:
-            myDirection = eDirection::N;
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    case eDirection::E: {
-        switch (decision) {
-        case eDecision::GO_LEFT:
-            myDirection = eDirection::N;
-            break;
-
-        case eDecision::GO_RIGHT:
-            myDirection = eDirection::S;
-            break;
-        case eDecision::GO_BACK:
-            myDirection = eDirection::W;
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    case eDirection::W: {
-        switch (decision) {
-        case eDecision::GO_LEFT:
-            myDirection = eDirection::S;
-            break;
-
-        case eDecision::GO_RIGHT:
-            myDirection = eDirection::N;
-            break;
-        case eDecision::GO_BACK:
-            myDirection = eDirection::E;
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    }
-
-    //new position
+    myDirection = Direction::Rotate(myDirection, decision);
     myPosition = myPosition.Neighbour(myDirection);
 }
 
-eDecision cMouse::MakeDecision()
+Direction::eRelative cMouse::MakeDecision(bool leftWall, bool rightWall, bool frontWall)
 {
-    if (myLabirynth->IsCenter(myPosition)) {
-        return eDecision::STAY;
+    if (myLabirynth->EndOfRoute(myPosition)) {
+        std::cout << "end of route";
+        goingBackMode = true;
+        goingBackPosition = 0;
     }
 
-    //if any free places
-    if (myLabirynth->Left() == eState::FreeToGo) {
-        return eDecision::GO_LEFT;
-    }
-    if (myLabirynth->Right() == eState::FreeToGo) {
-        return eDecision::GO_RIGHT;
-    }
-    if (myLabirynth->Front() == eState::FreeToGo) {
-        return eDecision::GO_STRAIGHT;
-    }
-
-    //if any already visited places
-    if (myLabirynth->Left() == eState::AlreadyVisited) {
-        return eDecision::GO_LEFT;
-    }
-    if (myLabirynth->Right() == eState::AlreadyVisited) {
-        return eDecision::GO_RIGHT;
-    }
-    if (myLabirynth->Front() == eState::AlreadyVisited) {
-        return eDecision::GO_STRAIGHT;
+    if (goingBackMode) {
+        goingBackPosition++;
+        if (goingBackPosition < currentRoute->Size()) {
+            auto newDirection = myPosition.DirectionOf(currentRoute->FromEnd(goingBackPosition));
+            return Direction::GetDirection(myDirection, newDirection);
+        } else {
+            goingBackMode = false; //koniec wracania, trzeba jednakpodj¹æ decyzje
+        }
     }
 
-    return eDecision::GO_BACK;
+    // if not coming back
+    return ResearchForNewWay(leftWall, rightWall, frontWall);
+}
+
+Direction::eRelative cMouse::ResearchForNewWay(bool leftWall, bool rightWall, bool frontWall)
+{
+    std::vector<sCell*> visited;
+    std::vector<sCell*> notVisited;
+
+    auto setVisitedCells = [&](bool wall, Direction::eRelative direction) {
+        sCell* cell = nullptr;
+        if (wall == false) {
+            cell = myLabirynth->GetCell(myPosition, myDirection, direction);
+            if (cell) {
+                if (cell->visited > 0) {
+                    visited.push_back(cell);
+                } else {
+                    notVisited.push_back(cell);
+                }
+            }
+        }
+        return cell;
+    };
+    auto left = setVisitedCells(leftWall, Direction::eRelative::Left);
+    auto right = setVisitedCells(rightWall, Direction::eRelative::Right);
+    auto front = setVisitedCells(frontWall, Direction::eRelative::Straight);
+
+    if (notVisited.size() == 1) {
+        if (left && left->visited == 0)
+            return Direction::eRelative::Left;
+        if (right && right->visited == 0)
+            return Direction::eRelative::Right;
+        if (front && front->visited == 0)
+            return Direction::eRelative::Straight;
+    }
+
+    if (notVisited.size() == 0) {
+        return ChooseWisely(visited);
+    }
+    // not visited >=2
+    return ChooseWisely(notVisited);
+}
+
+Direction::eRelative cMouse::ChooseWisely(std::vector<sCell*>& possibilities)
+{
+    std::sort(possibilities.begin(), possibilities.end(), [](sCell* c1, sCell* c2) { return (c1->distFromCenter < c2->distFromCenter); });
+
+    for (auto n : possibilities) {
+        if (n->endOfRoute == false) {
+            auto result = myPosition.DirectionOf(n->pos);
+            auto dir = Direction::GetDirection(myDirection, result);
+            return dir;
+        }
+    }
+    return Direction::eRelative::Back;
 }
 
 void cMouse::ManageRoute()
@@ -164,8 +138,10 @@ void cMouse::ManageRoute()
     }
 
     if (myLabirynth->IsNode(myPosition)) {
-        map.Add(currentRoute);
-        currentRoute = std::make_shared<cRoute>(myPosition);
+        myLabirynth->Add(currentRoute);
+        if (myLabirynth->EndOfRoute(myPosition) == false || goingBackMode == false) {
+            currentRoute = std::make_shared<cRoute>(myPosition);
+        }
     }
 }
 

@@ -30,7 +30,10 @@
     <ClInclude Include="cPosition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cRouteMap.h">
+    <ClInclude Include="cNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Directions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -50,7 +53,10 @@
     <ClCompile Include="cPosition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cRouteMap.cpp">
+    <ClCompile Include="Directions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

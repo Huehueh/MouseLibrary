@@ -1,6 +1,6 @@
 #include "Main.h"
 
-#include "cMouse.h"
+#include <Data/cMouse.h>
 
 extern "C" {
 cMouse* CreateInstance() { return new cMouse(); }

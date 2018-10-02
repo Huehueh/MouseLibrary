@@ -21,3 +21,30 @@ cPosition cRoute::End()
 {
     return myCells.back();
 }
+
+std::shared_ptr<cRoute> cRoute::Reversed()
+{
+    std::shared_ptr<cRoute> reversedRoute;
+    for (auto it = myCells.rbegin(); it != myCells.rend(); ++it) {
+        reversedRoute->Add(*it);
+    }
+    return reversedRoute;
+}
+
+cPosition cRoute::FromStart(int number) const
+{
+    if (number > 0 && number < myCells.size()) {
+        return myCells.at(number);
+    } else {
+        return cPosition();
+    }
+}
+
+cPosition cRoute::FromEnd(int number) const
+{
+    if (number > 0 && number < myCells.size()) {
+        return myCells.at(myCells.size() - number - 1);
+    } else {
+        return cPosition();
+    }
+}
